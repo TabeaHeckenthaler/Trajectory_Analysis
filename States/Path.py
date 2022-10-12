@@ -1,14 +1,15 @@
 from unpickle import unpickle
 from ConfigSpace.ConfigSpace import ConfigSpace_AdditionalStates
-from ConfigSpace.state_names import pre_final_state, color_dict
+from ConfigSpace.state_names import pre_final_state, color_dict, final_state, allowed_transition_attempts
 from tqdm import tqdm
-from DataFrame.DataFrame import myDataFrame_sim
+from Directories import df_sim_dir
 from Directories import network_dir
 import os
 import json
 from matplotlib import pyplot as plt
 from itertools import groupby
 import numpy as np
+import pandas as pd
 
 solver_geometry = {'ant': ('MazeDimensions_new2021_SPT_ant.xlsx', 'LoadDimensions_new2021_SPT_ant.xlsx'),
                    'pheidole': ('MazeDimensions_new2021_SPT_ant.xlsx', 'LoadDimensions_new2021_SPT_ant.xlsx'),
@@ -48,8 +49,6 @@ class Path:
         indices = [conf_space_labeled.coords_to_indices(*coords) for coords in coords]
         labels = [None]
         for i, index in enumerate(indices):
-            # if i == 11360:
-            #     DEBUG = 1
             labels.append(self.label_configuration(index, conf_space_labeled))
         labels = labels[1:]
 
@@ -118,18 +117,14 @@ class Path:
                 cs_labeled.load_labeled_space()
                 for _, exp in tqdm(cs_group.iterrows()):
                     print(exp['filename'])
-                    if (exp['maze dimensions'], exp['load dimensions']) != solver_geometry[solver]:
-                        dictio_ts[exp['filename']] = None
-                        dictio_ss[exp['filename']] = None
-                    else:
-                        x = unpickle(exp['filename'])
-                        path_x = Path(time_step=0.25, x=x, conf_space_labeled=cs_labeled)
-                        dictio_ts[exp['filename']] = path_x.time_series
-                        dictio_ss[exp['filename']] = path_x.state_series
+                    x = unpickle(exp['filename'])
+                    path_x = Path(time_step=0.25, x=x, conf_space_labeled=cs_labeled)
+                    dictio_ts[exp['filename']] = path_x.time_series
+                    dictio_ss[exp['filename']] = path_x.state_series
         return dictio_ts, dictio_ss
 
     @staticmethod
-    def find_missing(myDataFrame, solver=None):
+    def find_missing(time_series_dict, myDataFrame, solver=None):
         myDataFrame = myDataFrame[myDataFrame['shape'] == 'SPT']
 
         if solver is not None:
@@ -171,14 +166,8 @@ class Path:
         ts = self.time_series
         if 'i' in ts:
             ts.remove('i')
-        # ts = Path.only_states(self.time_series)
-        # ts = Path.symmetrize(ts)
-        # dur = Path.state_duration(ts)
-        dur = Path.time_stamped_series(ts, self.time_step)
 
-        # prop_cycle = plt.rcParams['axes.prop_cycle']
-        # colors = prop_cycle.by_key()['color']
-        # color_dict = {state: color for state, color in zip(['a', 'b', 'c', 'd', 'h', 'f'], colors)}
+        dur = Path.time_stamped_series(ts, self.time_step)
 
         left = 0
         given_names = {}
@@ -193,14 +182,6 @@ class Path:
                 left += dur_in_min
             if name not in given_names:
                 given_names.update({name: b})
-
-        # if winner:
-        #     plt.text(left + 1, b.patches[0].xy[-1], 'v', color='green')
-        # else:
-        #     plt.text(left + 1, b.patches[0].xy[-1], 'x', color='red')
-        #
-        # if food:
-        #     plt.text(left + 2, b.patches[0].xy[-1], 'f', color='black')
 
         labels = list(color_dict.keys())
         handles = [plt.Rectangle((0, 0), 1, 1, color=color_dict[label]) for label in labels]
@@ -228,24 +209,20 @@ class Path:
             json_file.close()
 
 
-time_series_dict, state_series_dict = Path.get_dicts()
-time_series_dict_selected_states, state_series_dict_selected_states = Path.get_dicts(name='_selected_states')
-time_series_dict_selected_states_sim, state_series_dict_selected_states_sim = Path.get_dicts(name='_selected_states_sim')
-
-DEBUG = 1
 if __name__ == '__main__':
+    df = pd.read_json(df_sim_dir)
+    time_series_dict_selected_states, state_series_dict_selected_states = Path.create_dicts(df,
+                                                                                            ConfigSpace_AdditionalStates)
+    Path.save_dicts(time_series_dict_selected_states, state_series_dict_selected_states, name='_selected_states_sim')
+
+    # time_dict, state_dict = Path.get_dicts(name='_selected_states_sim')
+
     # filename = 'M_SPT_4700022_MSpecialT_1_ants'
     # x = get(filename)
     # cs_labeled = ConfigSpace_AdditionalStates(x.solver, x.size, x.shape, x.geometry())
     # cs_labeled.load_labeled_space()
     # path = Path(time_step, x=x, conf_space_labeled=cs_labeled)
     # x.play(step=5, path=path, videowriter=True)
-    #
-    ConfigSpace_class = ConfigSpace_AdditionalStates
-
-    time_series_dict_selected_states, state_series_dict_selected_states = Path.create_dicts(myDataFrame_sim,
-                                                                                            ConfigSpace_class)
-    Path.save_dicts(time_series_dict_selected_states, state_series_dict_selected_states, name='_selected_states_sim')
 
     # to_add = Path.find_missing(myDataFrame)
     # time_series_dict_selected_states, state_series_dict_selected_states = Path.add_to_dict(to_add,

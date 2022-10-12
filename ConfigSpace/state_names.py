@@ -51,7 +51,7 @@ connected = [['ab', 'ac'], ['ab', 'b', 'be', 'b1', 'b2'], ['ac', 'c'], ['c', 'e'
              ['e', 'eg'], ['f', 'h'], ['h', 'g', 'i']]
 
 pre_final_state = perfect_states[-2]
-
+final_state = perfect_states[-1]
 color_dict = {'b': '#9700fc', 'be': '#e0c1f5', 'b1': '#d108ba', 'b2': '#38045c',
               # 'bf': '#d108ba',
               # 'a': '#fc0000',
@@ -60,3 +60,12 @@ color_dict = {'b': '#9700fc', 'be': '#e0c1f5', 'b1': '#d108ba', 'b2': '#38045c',
               'e': '#fcf400', 'eb': '#a6a103', 'eg': '#05f521',
               'f': '#30a103',
               'h': '#085cd1'}
+
+allowed_transition_attempts = ['ab', 'ac',
+                               'ba',
+                               'ce', 'cd', 'ca',
+                               'ec', 'ef',
+                               'dc', 'df',
+                               'fd', 'fe', 'fh',
+                               'gh',
+                               'hf', 'hg']
