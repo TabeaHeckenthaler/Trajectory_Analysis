@@ -3,7 +3,7 @@ from ConfigSpace.ConfigSpace import ConfigSpace_AdditionalStates
 from ConfigSpace.state_names import pre_final_state, color_dict, final_state, allowed_transition_attempts
 from tqdm import tqdm
 from Directories import df_sim_dir
-from Directories import network_dir
+from Directories import trajectory_states_dir
 import os
 import json
 from matplotlib import pyplot as plt
@@ -189,22 +189,22 @@ class Path:
 
     @staticmethod
     def get_dicts(name=''):
-        with open(os.path.join(network_dir, 'time_series' + name + '.json'), 'r') as json_file:
+        with open(os.path.join(trajectory_states_dir, 'time_series' + name + '.json'), 'r') as json_file:
             time_series_dict = json.load(json_file)
             json_file.close()
 
-        with open(os.path.join(network_dir, 'state_series' + name + '.json'), 'r') as json_file:
+        with open(os.path.join(trajectory_states_dir, 'state_series' + name + '.json'), 'r') as json_file:
             state_series_dict = json.load(json_file)
             json_file.close()
         return time_series_dict, state_series_dict
 
     @staticmethod
     def save_dicts(time_series_dict, state_series_dict, name=''):
-        with open(os.path.join(network_dir, 'time_series' + name + '.json'), 'w') as json_file:
+        with open(os.path.join(trajectory_states_dir, 'time_series' + name + '.json'), 'w') as json_file:
             json.dump(time_series_dict, json_file)
             json_file.close()
 
-        with open(os.path.join(network_dir, 'state_series' + name + '.json'), 'w') as json_file:
+        with open(os.path.join(trajectory_states_dir, 'state_series' + name + '.json'), 'w') as json_file:
             json.dump(state_series_dict, json_file)
             json_file.close()
 

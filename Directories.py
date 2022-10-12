@@ -20,7 +20,7 @@ work_dir = path.join(data_home, 'Pickled_Trajectories')
 #                     'ps_simulation': path.join(work_dir, 'PS_simulation_Trajectories')}
 
 # directory where the results from the states analysis will be saved
-network_dir = path.join(project_home, 'States')
+trajectory_states_dir = path.join(project_home, 'States')
 
 # directory where your Dataframe is saved, which contains all names of your trajectories
 df_sim_dir = path.join(data_home, 'Dataframe', 'data_frame_test_sim.json')
