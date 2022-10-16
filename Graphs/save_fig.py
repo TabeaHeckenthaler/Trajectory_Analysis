@@ -1,3 +1,7 @@
+from os import path, mkdir
+import datetime
+from Directories import project_home
+
 
 def graph_dir():
     direct = path.abspath(path.join(project_home, 'Graphs',

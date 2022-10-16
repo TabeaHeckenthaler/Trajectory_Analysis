@@ -1,6 +1,6 @@
 from States.Path import Path
 from matplotlib import pyplot as plt
-from Directories import df_sim_dir, project_home
+from Directories import df_sim_dir
 import pandas as pd
 from Graphs.save_fig import save_fig
 
