@@ -2,12 +2,11 @@ from ConfigSpace.state_names import *
 from Directories import PhaseSpaceDirectory, project_home
 import numpy as np
 import pickle
-import os
-from scipy import ndimage
 import pandas as pd
 import ast
 from skfmm import distance
 from itertools import groupby
+from os import path
 
 measurements = pd.read_excel(project_home + '\\ConfigSpace\\CSs\\SPT\\CS_measurements.xlsx')
 
@@ -43,17 +42,15 @@ class ConfigSpace_AdditionalStates:
         Note for Tabea: in her code, these would be saved as
         M_SPT_MazeDimensions_new2021_SPT_ant_labeled_erosion_12_small for example, but here only M_SPT.pkl
         """
-        directory = os.path.join(PhaseSpaceDirectory, self.shape, self.size + '_' + self.shape + '.pkl')
 
-        if os.path.exists(directory):
-            print('Loading labeled from ', directory, '.')
-            self.space_labeled = pickle.load(open(directory, 'rb'))
-            self.reduce_states()
-            self.enlarge_transitions()
-            self.split_states()
-
+        if self.size in ['Small Far', 'Small Near']:  # both have same dimensions
+            filename = 'Small' + '_' + self.shape + '_' + self.geometry[0][:-5]
         else:
-            raise ValueError('Cannot find directory ' + directory)
+            filename = self.size + '_' + self.shape + '_' + self.geometry[0][:-5]
+
+        directory = path.join(PhaseSpaceDirectory, self.shape, filename + '_labeled_final.pkl')
+        print('Loading labeled from ', directory, '.')
+        self.space_labeled = pickle.load(open(directory, 'rb'))
 
     def find_closest_state(self, index: list) -> str:
         """
@@ -119,46 +116,6 @@ class ConfigSpace_AdditionalStates:
         masked_phi = np.ma.MaskedArray(phi, mask=~available_states)
         d = distance(masked_phi, periodic=(0, 0, 1))
         return d
-
-    def reduce_states(self):
-        for name_initial, name_final in same_names:
-            self.space_labeled[name_initial == self.space_labeled] = name_final
-
-    @staticmethod
-    def dilate(space: np.array, radius: int) -> np.array:
-        """
-        dilate phase space
-        :param space:
-        :param radius: radius of dilation
-        """
-        return np.array(ndimage.morphology.grey_dilation(space, size=tuple(radius for _ in range(space.ndim))),
-                        dtype=bool)
-
-    def enlarge_transitions(self):
-        to_enlarge = {'be': 30, 'bf': 30, 'eb': 45, 'eg': 45, 'cg': 15}
-        for state, radius in to_enlarge.items():
-            mask = self.dilate(self.space_labeled == state, radius)
-            mask = np.logical_and(mask, self.space_labeled == state[0])
-            self.space_labeled[mask] = state
-
-    def split_states(self):
-        # split 'a'
-        boundary = self.space_labeled.shape[2] / 4
-        b_mask = np.zeros(self.space_labeled.shape, dtype=bool)
-        b_mask[..., int(boundary):int(boundary * 3)] = True
-        a_mask = np.isin(self.space_labeled, ['a', 'ab', 'ac'])
-
-        self.space_labeled[np.logical_and(a_mask, b_mask)] = 'ac'
-        self.space_labeled[np.logical_and(a_mask, np.logical_not(b_mask))] = 'ab'
-
-        # split 'bf'
-        a_mask = self.space_labeled == 'bf'
-        boundary = self.space_labeled.shape[1] // 2 + 1
-        b_mask = np.zeros(self.space_labeled.shape, dtype=bool)
-        b_mask[:, :int(boundary)] = True
-
-        self.space_labeled[np.logical_and(a_mask, b_mask)] = 'b1'
-        self.space_labeled[np.logical_and(a_mask, np.logical_not(b_mask))] = 'b2'
 
     @staticmethod
     def valid_state_transition(s1, s2) -> bool:
@@ -292,7 +249,6 @@ class ConfigSpace_AdditionalStates:
 
     @classmethod
     def delete_false_transitions(cls, labels, filename=''):
-        # labels = labels[11980:]
         old_labels = labels.copy()
         end_state = old_labels[-1]
         new_labels = [labels[0]]
