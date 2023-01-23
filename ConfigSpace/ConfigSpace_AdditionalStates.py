@@ -1,7 +1,7 @@
-from ConfigSpace.state_names import *
 from Directories import PhaseSpaceDirectory, project_home
 import numpy as np
 import pickle
+from ConfigSpace.state_names import *
 import pandas as pd
 import ast
 from skfmm import distance
@@ -43,12 +43,7 @@ class ConfigSpace_AdditionalStates:
         M_SPT_MazeDimensions_new2021_SPT_ant_labeled_erosion_12_small for example, but here only M_SPT.pkl
         """
 
-        if self.size in ['Small Far', 'Small Near']:  # both have same dimensions
-            filename = 'Small' + '_' + self.shape + '_' + self.geometry[0][:-5]
-        else:
-            filename = self.size + '_' + self.shape + '_' + self.geometry[0][:-5]
-
-        directory = path.join(PhaseSpaceDirectory, self.shape, filename + '_labeled_final.pkl')
+        directory = path.join(PhaseSpaceDirectory, self.shape, self.size + '_' + self.shape + '.pkl')
         print('Loading labeled from ', directory, '.')
         self.space_labeled = pickle.load(open(directory, 'rb'))
 
