@@ -266,3 +266,7 @@ if __name__ == '__main__':
 
     cs_labeled = ConfigSpace_AdditionalStates(solver, size, shape, geometry)
     cs_labeled.load_labeled_space()
+
+    x, y, theta = None, None, None
+    indices = cs_labeled.coords_to_indices(x=x, y=y, theta=theta)
+    state = cs_labeled.space_labeled[indices]
